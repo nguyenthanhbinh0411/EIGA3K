@@ -27,7 +27,7 @@ export default {
   data() {
     return {
       data: [
-        { name: 'Nguyễn Văn A', age: 25, email: 'nguyenvana@example.com' },
+        { name: 'Nguyễn Hữu Huy ', age: 20, email: 'Nguyenhuuhuy489@gmail.com' },
         { name: 'Trần Thị B', age: 30, email: 'tranthib@example.com' },
         { name: 'Nguyễn Văn C', age: 22, email: 'nguyenvanc@example.com' },
         { name: 'Phạm Văn D', age: 28, email: 'phamvand@example.com' },
