@@ -1,186 +1,377 @@
 <template>
-  <div class="movie-player">
-    <div v-if="loading" class="loading-message">
-      <p>Đang tải tập phim...</p>
+  <div class="movie-player-page">
+    <MovieNavbar
+      :genres="genres"
+      :countries="countries"
+      :showGenreDropdown="showGenreDropdown"
+      :showCountryDropdown="showCountryDropdown"
+      @toggle-genre-dropdown="toggleGenreDropdown"
+      @toggle-country-dropdown="toggleCountryDropdown"
+      @load-movies-by-genre="loadMoviesByGenre"
+      @load-movies-by-country="loadMoviesByCountry"
+    />
+    <!-- Loading Spinner -->
+    <div v-if="isLoading" class="loading-spinner">
+      <span>Đang tải...</span>
+      <div class="spinner"></div>
     </div>
-    <div v-else>
-      <h1 class="movie-title">{{ movie.name }}</h1>
-      <div v-if="selectedEpisode">
-        <iframe
-          v-if="selectedEpisode.link_embed"
-          :src="selectedEpisode.link_embed"
-          frameborder="0"
-          allowfullscreen
-          class="video-frame"
-        ></iframe>
-        <video v-else-if="selectedEpisode.link_m3u8" controls class="video-frame">
-          <source :src="selectedEpisode.link_m3u8" type="application/x-mpegURL">
-          Trình duyệt của bạn không hỗ trợ video này.
-        </video>
-        <div v-else class="no-video-message">
-          Không tìm thấy đường dẫn xem phim cho tập này.
-        </div>
-      </div>
-      <div class="episode-list">
-        <h2>Danh sách tập phim:</h2>
-        <button
-          v-for="episode in filteredEpisodes"
-          :key="episode.slug"
-          @click="selectEpisode(episode)"
-          :class="{ 'active': selectedEpisode && selectedEpisode.slug === episode.slug }"
-          class="episode-button"
-        >
-          Tập {{ episode.name }}
-        </button>
-      </div>
-      <div class="server-list">
-        <h2>Chọn server:</h2>
-        <button
-          v-for="server in servers"
-          :key="server"
-          @click="selectServer(server)"
-          :class="{ 'active': selectedServer === server }"
-          class="server-button"
-        >
-          {{ server }}
-        </button>
+
+    <!-- Movie Info -->
+    <div v-if="movieName && currentEpisodeName" class="movie-info">
+      <h2>{{ movieName }} - {{ currentEpisodeName }}</h2>
+    </div>
+
+    <!-- Video Player -->
+    <div class="player-container">
+      <iframe
+        v-if="episodeUrl"
+        :src="episodeUrl"
+        class="video-player"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <!-- Server and Episode List -->
+    <div class="server-list" v-if="episodes.length > 0">
+      <h3>Danh sách Server</h3>
+      <div v-for="(server, index) in episodes" :key="index" class="server">
+        <h4>{{ server.server_name }}</h4>
+        <ul>
+          <li
+            v-for="(episode, epIndex) in server.server_data"
+            :key="episode.slug || epIndex"
+            class="episode-item"
+          >
+            <button
+              class="episode-button"
+              @click="
+                playEpisode(episode.slug, episode.link_embed, episode.name)
+              "
+            >
+              {{ episode.name }}
+            </button>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
+import MovieNavbar from "./Navbar.vue";
 
 export default {
+  components: {
+    MovieNavbar,
+  },
   data() {
     return {
-      movie: null,
-      selectedEpisode: null,
+      isLoading: true,
+      episodeSlug: this.$route.query.episodeSlug || "full", // Retrieve episodeSlug from query parameters
+      episodeUrl: "",
       episodes: [],
-      servers: [], // Danh sách server
-      selectedServer: null, // Server được chọn
-      slug: this.$route.params.slug,
-      episodeSlug: this.$route.params.episode,
-      loading: true,
+      movieName: "",
+      currentEpisodeName: "",
+      genres: [],
+      countries: [],
+      showGenreDropdown: false,
+      showCountryDropdown: false,
     };
   },
-  computed: {
-    filteredEpisodes() {
-      if (!this.selectedServer) return [];
-      const serverData = this.episodes.find(episode => episode.server_name === this.selectedServer);
-      return serverData ? serverData.server_data : [];
-    }
+  mounted() {
+    this.scrollToTop(); // Scroll to top when the component is mounted
+    this.fetchMovieDetails();
+    this.fetchGenres();
+    this.fetchCountries();
+  },
+  watch: {
+    $route: {
+      immediate: true,
+      handler(newRoute) {
+        this.scrollToTop(); // Scroll to top when the route changes
+        this.episodeSlug = newRoute.query.episodeSlug || "full"; // Update episodeSlug from query parameters
+        if (this.episodes.length > 0) {
+          this.updateCurrentEpisode();
+        } else {
+          this.fetchMovieDetails();
+        }
+      },
+    },
   },
   methods: {
+    scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    },
     async fetchMovieDetails() {
+      const slug = this.$route.params.slug;
       try {
-        const response = await axios.get(`https://apii.online/api/phim/${this.slug}`);
-        this.movie = response.data.movie;
-        this.episodes = response.data.episodes; // Lấy dữ liệu episodes
-        this.servers = this.episodes.map(episode => episode.server_name); // Lấy danh sách server
-        this.selectedServer = this.servers[0]; // Chọn server đầu tiên
-        this.selectedEpisode = this.filteredEpisodes.find(episode => episode.slug === this.episodeSlug) || this.filteredEpisodes[0];
+        const res = await axios.get(`https://phimapi.com/phim/${slug}`);
+        if (res.data && res.data.movie && res.data.episodes.length > 0) {
+          this.movieName = res.data.movie.name;
+          this.episodes = res.data.episodes.map((server) => ({
+            ...server,
+            server_data: server.server_data.map((episode) => ({
+              ...episode,
+              slug: episode.slug || episode.filename, // Ensure slug is correctly handled
+            })),
+          }));
+          this.updateCurrentEpisode();
+        } else {
+          console.error("Dữ liệu trả về không có danh sách tập.");
+        }
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin phim:', error);
+        console.error("Có lỗi xảy ra khi lấy dữ liệu từ API:", error);
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     },
-    selectEpisode(episode) {
-      this.selectedEpisode = episode;
-      this.$router.push({ name: 'MoviePlayer', params: { slug: this.slug, episode: episode.slug } });
+    updateCurrentEpisode() {
+      for (const server of this.episodes) {
+        const currentEpisode = server.server_data.find(
+          (ep) => ep.slug === this.episodeSlug
+        );
+        if (currentEpisode && currentEpisode.link_embed) {
+          this.episodeUrl = currentEpisode.link_embed;
+          this.currentEpisodeName = currentEpisode.name;
+          return;
+        }
+      }
+      // If no matching episode is found, default to the first episode with a valid link
+      for (const server of this.episodes) {
+        const fallbackEpisode = server.server_data.find((ep) => ep.link_embed);
+        if (fallbackEpisode) {
+          this.episodeUrl = fallbackEpisode.link_embed;
+          this.currentEpisodeName = fallbackEpisode.name;
+          return;
+        }
+      }
+      console.error("Không tìm thấy tập hiện tại hoặc không có link_embed.");
     },
-    selectServer(server) {
-      this.selectedServer = server;
-      this.selectedEpisode = this.filteredEpisodes[0]; // Chọn tập đầu tiên của server mới
-      this.$router.push({ name: 'MoviePlayer', params: { slug: this.slug, episode: this.selectedEpisode.slug } });
+    async fetchGenres() {
+      try {
+        const response = await axios.get("https://phimapi.com/the-loai");
+        this.genres = response.data || [];
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách thể loại:", error);
+      }
     },
-  },
-  mounted() {
-    this.fetchMovieDetails();
+    async fetchCountries() {
+      try {
+        const response = await axios.get("https://phimapi.com/quoc-gia");
+        this.countries = response.data || [];
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách quốc gia:", error);
+      }
+    },
+    toggleGenreDropdown() {
+      this.showGenreDropdown = !this.showGenreDropdown;
+    },
+    toggleCountryDropdown() {
+      this.showCountryDropdown = !this.showCountryDropdown;
+    },
+    loadMoviesByGenre(apiUrl) {
+      this.$router.push("/");
+      this.$emit("load-movies-by-genre", apiUrl);
+    },
+    loadMoviesByCountry(apiUrl) {
+      this.$router.push("/");
+      this.$emit("load-movies-by-country", apiUrl);
+    },
+    playEpisode(slug, linkEmbed, episodeName) {
+      if (linkEmbed) {
+        this.$router.push({
+          name: "MoviePlayer",
+          params: { slug: this.$route.params.slug, episodeSlug: slug },
+        });
+        this.episodeSlug = slug;
+        this.episodeUrl = linkEmbed;
+        this.currentEpisodeName = episodeName;
+      } else {
+        alert("Không thể phát tập này.");
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
-.movie-player {
+.movie-player-page {
+  background-color: #1c1c1c; /* Black background */
+  color: white; /* White text color */
+  min-height: 100vh;
   padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
+}
+
+/* Hiệu ứng spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #1c1c1c; /* Black background */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.spinner {
+  border: 4px solid #a3a0a0; /* Light gray */
+  border-top: 4px solid #ff6347; /* Orange */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Trình phát phim */
+.player-container {
   max-width: 1200px;
   margin: 20px auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 0 16px;
 }
 
-.movie-title {
-  font-size: 24px;
-  margin-bottom: 20px;
-}
-
-.video-frame {
+.player-container iframe {
   width: 100%;
-  height: 500px;
+  max-width: 800px;
+  height: 450px;
   border: none;
   border-radius: 8px;
-  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease-in-out;
 }
 
-.loading-message {
+.player-container iframe:hover {
+  transform: scale(1.02);
+}
+
+/* Thông tin phim */
+.movie-info {
   text-align: center;
-  font-size: 1.5em;
-  color: #888;
+  font-size: 18px;
+  margin-top: 40px;
+  font-weight: bold;
+  color: #ff6347; /* Orange text */
 }
 
-.no-video-message {
-  text-align: center;
-  font-size: 1.2em;
-  color: #888;
-  margin-bottom: 20px;
-}
-
+/* Danh sách tập */
 .episode-list {
-  margin-top: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.episode-list h3 {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #ff6347; /* Orange text */
+}
+
+.episode-list ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 0;
+  margin: 0;
+}
+
+.episode-item {
+  list-style: none;
+  text-align: center;
+}
+
+.episode-item button {
+  padding: 12px 25px;
+  background-color: #ff6347; /* Orange background */
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.episode-item button:hover {
+  background-color: #e03e2d; /* Darker orange */
+  transform: scale(1.05);
+}
+
+.episode-item button:disabled {
+  background-color: #333; /* Dark gray */
+  cursor: not-allowed;
+  color: #aaa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .episode-item {
+    width: calc(50% - 10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .episode-item {
+    width: 100%;
+  }
+}
+
+/* Server List */
+.server-list {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.server h4 {
+  font-size: 18px;
+  color: #ff6347;
+  margin-bottom: 10px;
+}
+
+.server ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+.episode-item {
+  list-style: none;
 }
 
 .episode-button {
-  margin: 5px;
-  padding: 10px 15px;
-  background-color: #e0e0e0;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-}
-
-.episode-button.active {
-  background-color: #4CAF50;
-  color: white;
+  transition: background-color 0.3s, transform 0.3s;
 }
 
 .episode-button:hover {
-  background-color: #d0d0d0;
-}
-
-.server-list {
-  margin-top: 20px;
-}
-
-.server-button {
-  margin: 5px;
-  padding: 10px 15px;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.server-button.active {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.server-button:hover {
-  background-color: #d0d0d0;
+  background-color: #ff6347;
+  transform: scale(1.05);
 }
 </style>

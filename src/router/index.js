@@ -1,17 +1,33 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import MovieList from '../components/MovieList.vue';
-import MovieDetails from '../components/MovieDetails.vue';
-import MoviePlayer from '../components/MoviePlayer.vue'; // Import MoviePlayer
+import { createRouter, createWebHistory } from "vue-router";
+import HomePage from "../components/HomePage.vue";
+import MovieList from "../components/MovieList.vue";
+import MovieDetail from "../components/MovieDetail.vue";
+import MoviePlayer from "../components/MoviePlayer.vue";
 
 const routes = [
-  { path: '/', component: MovieList },
-  { path: '/movie/:slug', name: 'MovieDetails', component: MovieDetails, props: true },
-  { path: '/movie/:slug/player/:episode', name: 'MoviePlayer', component: MoviePlayer, props: true } // Thêm tuyến đường cho MoviePlayer
+  { path: "/", component: HomePage }, // Set HomePage as the default route
+  {
+    path: "/movies",
+    component: MovieList,
+    props: (route) => ({ query: route.query }),
+  },
+  {
+    path: "/movie/:slug",
+    name: "MovieDetail",
+    component: MovieDetail,
+    props: true,
+  },
+  {
+    path: "/xem-phim/:slug",
+    name: "MoviePlayer",
+    component: MoviePlayer,
+    props: true,
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
 export default router;
