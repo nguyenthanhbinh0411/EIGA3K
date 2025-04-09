@@ -1,19 +1,27 @@
 <template>
-<footer class="footer">
+  <footer class="footer">
     <div class="footer-container">
       <div class="footer-content">
         <p>
-          <strong>Xem Phim Online Hay Nhất - Đa Dạng Thể Loại, Cập Nhật Liên Tục</strong>
+          <strong
+            >Xem Phim Online Hay Nhất - Đa Dạng Thể Loại, Cập Nhật Liên
+            Tục</strong
+          >
         </p>
         <p>
-          Thưởng thức hàng ngàn bộ phim hay nhất với chất lượng cao, từ hành động, tình cảm, kinh dị đến viễn tưởng. 
-          Kho phim đa dạng, cập nhật liên tục các siêu phẩm mới nhất, mang đến trải nghiệm giải trí tuyệt vời ngay tại nhà.
+          Thưởng thức hàng ngàn bộ phim hay nhất với chất lượng cao, từ hành
+          động, tình cảm, kinh dị đến viễn tưởng. Kho phim đa dạng, cập nhật
+          liên tục các siêu phẩm mới nhất, mang đến trải nghiệm giải trí tuyệt
+          vời ngay tại nhà.
         </p>
         <p>
-          <strong>EIGA3K</strong> | Xem Phim Hay Online © 2024. All Rights Reserved
+          <strong>EIGA3K</strong> | Xem Phim Hay Online © 2024. All Rights
+          Reserved
         </p>
         <p>
-          Trang web này không lưu trữ bất kỳ tệp nào trên máy chủ của chúng tôi, chúng tôi chỉ liên kết với phương tiện được lưu trữ trên các dịch vụ của bên thứ 3.
+          Trang web này không lưu trữ bất kỳ tệp nào trên máy chủ của chúng tôi,
+          chúng tôi chỉ liên kết với phương tiện được lưu trữ trên các dịch vụ
+          của bên thứ 3.
         </p>
       </div>
       <div class="footer-contact">
@@ -62,7 +70,7 @@ export default {
 
 .footer-contact {
   flex: 1; /* Take less space */
-  text-align: left ; /* Align text to the right */
+  text-align: left; /* Align text to the right */
   margin-top: auto;
 }
 
