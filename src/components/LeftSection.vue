@@ -118,22 +118,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  background-color: #1c1c1c; /* Match card background */
-  padding: 15px 20px;
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Modern shadow effect */
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
-}
-
-.section-header:hover {
-  transform: scale(1.02); /* Slight scale effect */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Enhanced hover shadow */
 }
 
 .section-header h2 {
   font-size: 20px;
-  color: #ff6347; /* Match card title color */
-  margin: 0; /* Remove default margin */
+  color: #ff6347;
 }
 
 .section-header .view-more {
@@ -146,7 +135,7 @@ export default {
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Match button shadow */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -169,8 +158,8 @@ export default {
 
 .section-header .view-more:hover {
   background-color: #e03e2d;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5); /* Enhanced hover shadow */
-  transform: scale(1.05); /* Slight scale effect */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  transform: scale(1.05);
 }
 
 .movie-grid {
