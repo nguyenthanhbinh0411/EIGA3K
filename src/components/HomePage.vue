@@ -1104,4 +1104,65 @@ export default {
   font-size: 14px;
   color: #ff6347;
 }
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  .movie-slider {
+    gap: 5px;
+  }
+
+  .movie-card {
+    width: 120px;
+  }
+
+  .banner-thumbnail {
+    width: 250px;
+    height: 375px;
+  }
+
+  .banner-content h2 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .movie-slider {
+    gap: 5px;
+  }
+
+  .movie-card {
+    width: 100px;
+  }
+
+  .banner-thumbnail {
+    width: 200px;
+    height: 300px;
+  }
+
+  .banner-content h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-content h2 {
+    font-size: 18px;
+  }
+
+  .movie-card {
+    width: 80px;
+  }
+
+  .movie-title {
+    font-size: 12px;
+  }
+}
 </style>

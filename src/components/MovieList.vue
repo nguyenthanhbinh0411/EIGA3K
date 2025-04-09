@@ -181,7 +181,7 @@ export default {
       immediate: true,
       handler() {
         this.scrollToTop(); // Scroll to top when the route changes
-        const apiUrl = this.$store.state.apiUrl; // Lấy API URL từ Vuex store
+        const apiUrl = this.$store.state.apiUrl; // Retrieve API URL from Vuex store
         if (apiUrl) {
           this.apiUrl = apiUrl;
           this.loadMoviesByFilter(this.apiUrl, 1);
@@ -663,6 +663,14 @@ export default {
     justify-content: flex-end;
     margin-top: 10px;
   }
+
+  .movies {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .movie-card img {
+    height: 250px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -686,6 +694,28 @@ export default {
   .reset-button,
   .filter-button {
     width: 100%;
+  }
+
+  .movies {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .movie-card img {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .movies {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .movie-card img {
+    height: 150px;
+  }
+
+  .movie-card h3 {
+    font-size: 12px;
   }
 }
 

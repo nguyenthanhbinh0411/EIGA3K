@@ -88,4 +88,37 @@ export default {
   color: #e03e2d;
   text-decoration: underline;
 }
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .footer-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .footer-content,
+  .footer-contact {
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-content p {
+    font-size: 12px;
+  }
+
+  .footer-contact p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-content p {
+    font-size: 10px;
+  }
+
+  .footer-contact p {
+    font-size: 10px;
+  }
+}
 </style>

@@ -457,10 +457,12 @@ export default {
           this.localSearchKeyword.trim()
         );
         const searchUrl = `https://phimapi.com/v1/api/tim-kiem?keyword=${encodedKeyword}&limit=10`;
+        this.$store.commit("setApiUrl", searchUrl); // Save the search URL to Vuex
         this.$router.push({
           path: "/movies",
-          query: { filter: searchUrl, keyword: this.localSearchKeyword.trim() },
+          query: { keyword: this.localSearchKeyword.trim() }, // Only pass the keyword in the query
         });
+        this.showSearchDropdown = false; // Hide dropdown menu when searching
       } else {
         alert("Vui lòng nhập từ khóa tìm kiếm.");
       }
@@ -524,7 +526,7 @@ export default {
           );
           const data = await response.json();
           this.searchSuggestions = data.data.items || [];
-          this.showSearchDropdown = true; // Show dropdown when there is input
+          this.showSearchDropdown = true; // Show dropdown menu as soon as the user starts typing
         } catch (error) {
           console.error("Error fetching search suggestions:", error);
           this.searchSuggestions = [];
@@ -850,5 +852,43 @@ export default {
   font-size: 12px;
   color: #aaa;
   margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .menu {
+    gap: 20px;
+  }
+
+  .search-bar {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .menu {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-item {
+    font-size: 14px;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
 }
 </style>

@@ -93,4 +93,38 @@ nav a.router-link-exact-active {
   background-color: #333; /* Background color of the scrollbar track */
   border-radius: 4px; /* Rounded corners for the track */
 }
+
+/* Global responsive styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1c1c1c;
+  color: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+}
 </style>

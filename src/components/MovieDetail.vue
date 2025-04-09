@@ -836,4 +836,44 @@ export default {
   color: #ff6347; /* Ensure the header uses the correct color */
   margin-bottom: 10px;
 }
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .movie-thumbnail img {
+    width: 250px;
+  }
+
+  .movie-info h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .movie-thumbnail img {
+    width: 200px;
+  }
+
+  .movie-info h1 {
+    font-size: 24px;
+  }
+
+  .movie-info p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .movie-info h1 {
+    font-size: 20px;
+  }
+
+  .movie-info p {
+    font-size: 12px;
+  }
+}
 </style>
