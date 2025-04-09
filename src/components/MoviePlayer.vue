@@ -35,25 +35,7 @@
     <!-- Server and Episode List -->
     <div class="server-list" v-if="episodes.length > 0">
       <h3>Danh sách Server</h3>
-      <div v-for="(server, index) in episodes" :key="index" class="server">
-        <h4>{{ server.server_name }}</h4>
-        <ul>
-          <li
-            v-for="(episode, epIndex) in server.server_data"
-            :key="episode.slug || epIndex"
-            class="episode-item"
-          >
-            <button
-              class="episode-button"
-              @click="
-                playEpisode(episode.slug, episode.link_embed, episode.name)
-              "
-            >
-              {{ episode.name }}
-            </button>
-          </li>
-        </ul>
-      </div>
+      <EpisodeList :episodes="episodes" @episode-click="playEpisode" />
     </div>
   </div>
 </template>
@@ -61,9 +43,11 @@
 <script>
 import axios from "axios";
 import MovieNavbar from "./Navbar.vue";
+import EpisodeList from "./EpisodeList.vue";
 
 export default {
   components: {
+    EpisodeList,
     MovieNavbar,
   },
   data() {
@@ -121,11 +105,9 @@ export default {
             })),
           }));
           this.updateCurrentEpisode();
-        } else {
-          console.error("Dữ liệu trả về không có danh sách tập.");
         }
       } catch (error) {
-        console.error("Có lỗi xảy ra khi lấy dữ liệu từ API:", error);
+        // Handle error
       } finally {
         this.isLoading = false;
       }
@@ -157,7 +139,7 @@ export default {
         const response = await axios.get("https://phimapi.com/the-loai");
         this.genres = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách thể loại:", error);
+        // Handle error
       }
     },
     async fetchCountries() {
@@ -165,7 +147,7 @@ export default {
         const response = await axios.get("https://phimapi.com/quoc-gia");
         this.countries = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách quốc gia:", error);
+        // Handle error
       }
     },
     toggleGenreDropdown() {
@@ -182,15 +164,16 @@ export default {
       this.$router.push("/");
       this.$emit("load-movies-by-country", apiUrl);
     },
-    playEpisode(slug, linkEmbed, episodeName) {
-      if (linkEmbed) {
+    playEpisode(episode) {
+      if (episode.link_embed) {
         this.$router.push({
           name: "MoviePlayer",
-          params: { slug: this.$route.params.slug, episodeSlug: slug },
+          params: { slug: this.$route.params.slug },
+          query: { episodeSlug: episode.slug },
         });
-        this.episodeSlug = slug;
-        this.episodeUrl = linkEmbed;
-        this.currentEpisodeName = episodeName;
+        this.episodeSlug = episode.slug;
+        this.episodeUrl = episode.link_embed;
+        this.currentEpisodeName = episode.name;
       } else {
         alert("Không thể phát tập này.");
       }

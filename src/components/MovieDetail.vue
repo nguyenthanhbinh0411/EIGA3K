@@ -235,21 +235,7 @@
             </div>
           </div>
         </div>
-        <div class="episode-list" v-if="episodes.length > 0">
-          <div class="server" v-for="(server, index) in episodes" :key="index">
-            <h4>{{ server.server_name }}</h4>
-            <div class="episode-buttons">
-              <button
-                v-for="episode in server.server_data"
-                :key="episode.slug"
-                class="episode-button"
-                @click="handleEpisodeClick(episode.slug)"
-              >
-                {{ episode.name }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <EpisodeList :episodes="episodes" @episode-click="handleEpisodeClick" />
       </div>
       <RightSection
         :newMovies="newMovies"
@@ -263,11 +249,13 @@
 import axios from "axios";
 import MovieNavbar from "./Navbar.vue";
 import RightSection from "./RightSection.vue";
+import EpisodeList from "./EpisodeList.vue";
 
 export default {
   components: {
-    MovieNavbar,
+    EpisodeList,
     RightSection,
+    MovieNavbar,
   },
   data() {
     return {
@@ -332,8 +320,8 @@ export default {
     },
     translatedStatus() {
       const statusMap = {
-        ongoing: "Đang chiếu",
         completed: "Hoàn thành",
+        ongoing: "Đang chiếu",
       };
       return statusMap[this.movie.status?.toLowerCase()] || "Đang cập nhật"; // Default to "Đang cập nhật" if status is not found
     },
@@ -362,11 +350,9 @@ export default {
               slug: episode.slug || episode.filename, // Ensure slug is correctly handled
             })),
           }));
-        } else {
-          console.error("Dữ liệu không hợp lệ:", response.data);
         }
       } catch (error) {
-        console.error("Có lỗi xảy ra khi lấy dữ liệu phim:", error);
+        // Handle error
       } finally {
         this.isLoading = false;
       }
@@ -376,7 +362,7 @@ export default {
         const response = await axios.get("https://phimapi.com/the-loai");
         this.genres = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách thể loại:", error);
+        // Handle error
       }
     },
     async fetchCountries() {
@@ -384,7 +370,7 @@ export default {
         const response = await axios.get("https://phimapi.com/quoc-gia");
         this.countries = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách quốc gia:", error);
+        // Handle error
       }
     },
     async fetchNewMovies() {
@@ -394,7 +380,7 @@ export default {
         );
         this.newMovies = response.data?.items || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách phim mới:", error);
+        // Handle error
       }
     },
     playEpisode(slug, linkEmbed) {
@@ -410,11 +396,11 @@ export default {
     redirectToMovieListWithoutApi() {
       this.$router.push({ path: "/movies" });
     },
-    handleEpisodeClick(episodeSlug) {
+    handleEpisodeClick(episode) {
       this.$router.push({
         name: "MoviePlayer",
         params: { slug: this.movie.slug },
-        query: { episodeSlug }, // Send episodeSlug via query parameters
+        query: { episodeSlug: episode.slug },
       });
     },
   },
@@ -627,6 +613,16 @@ export default {
   margin-bottom: 10px;
   color: #ff6347;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Text shadow for modern look */
+}
+
+.episode-list-container {
+  margin-top: 20px;
+  max-height: 400px; /* Set maximum height for the container */
+  overflow-y: auto; /* Add vertical scroll if content exceeds max height */
+  padding: 10px;
+  background-color: #2c2c2c; /* Background color for the container */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Modern shadow effect */
 }
 
 .episode-list {

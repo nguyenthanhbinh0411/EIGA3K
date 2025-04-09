@@ -479,24 +479,35 @@ export default {
     },
     selectDanhSach(slug) {
       const apiUrl = `https://phimapi.com/v1/api/danh-sach/${slug}?page=1`;
-      this.$emit("load-movies-by-type-list", apiUrl);
-      this.$router.push({ path: "/movies", query: { filter: apiUrl } }); // Redirect to MovieList
-      this.showDanhSachDropdown = false; // Hide megamenu
+      this.$store.commit("setApiUrl", apiUrl); // Lưu API URL vào Vuex
+      if (this.$route.path !== "/movies") {
+        this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
+      }
+      this.showDanhSachDropdown = false; // Đóng megamenu
     },
     selectGenre(genre) {
-      const apiUrl = `https://phimapi.com/v1/api/the-loai/${genre.slug}?page=1`; // Correct API URL for genre
-      this.$router.push({ path: "/movies", query: { filter: apiUrl } }); // Redirect to MovieList
-      this.localShowGenreDropdown = false; // Hide megamenu
+      const apiUrl = `https://phimapi.com/v1/api/the-loai/${genre.slug}?page=1`;
+      this.$store.commit("setApiUrl", apiUrl); // Lưu API URL vào Vuex
+      if (this.$route.path !== "/movies") {
+        this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
+      }
+      this.localShowGenreDropdown = false; // Đóng megamenu
     },
     selectCountry(country) {
-      const apiUrl = `https://phimapi.com/v1/api/quoc-gia/${country.slug}?page=1`; // Correct API URL for country
-      this.$router.push({ path: "/movies", query: { filter: apiUrl } }); // Redirect to MovieList
-      this.localShowCountryDropdown = false; // Hide megamenu
+      const apiUrl = `https://phimapi.com/v1/api/quoc-gia/${country.slug}?page=1`;
+      this.$store.commit("setApiUrl", apiUrl); // Lưu API URL vào Vuex
+      if (this.$route.path !== "/movies") {
+        this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
+      }
+      this.localShowCountryDropdown = false; // Đóng megamenu
     },
     selectYear(year) {
-      const apiUrl = `https://phimapi.com/v1/api/nam/${year}?page=1`; // Correct API URL for year
-      this.$router.push({ path: "/movies", query: { filter: apiUrl } }); // Redirect to MovieList
-      this.localShowYearDropdown = false; // Hide megamenu
+      const apiUrl = `https://phimapi.com/v1/api/nam/${year}?page=1`;
+      this.$store.commit("setApiUrl", apiUrl); // Lưu API URL vào Vuex
+      if (this.$route.path !== "/movies") {
+        this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
+      }
+      this.localShowYearDropdown = false; // Đóng megamenu
     },
     clearSearch() {
       this.localSearchKeyword = "";

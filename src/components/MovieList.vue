@@ -98,7 +98,8 @@
             }}<br />
             <strong>Chất lượng:</strong> {{ movie.quality || "Đang cập nhật"
             }}<br />
-            <strong>Năm:</strong> {{ movie.year || "Đang cập nhật" }}
+            <strong>Năm:</strong> {{ movie.year || "Đang cập nhật" }}<br />
+            <strong>Trạng thái:</strong> {{ translateStatus(movie.status) }}
           </p>
           <router-link :to="`/movie/${movie.slug}`" class="watch-button">
             Xem phim
@@ -166,9 +167,9 @@ export default {
     this.scrollToTop(); // Scroll to top when the component is mounted
     this.fetchGenres();
     this.fetchCountries();
-    if (this.$route.query.filter) {
-      this.apiUrl = this.$route.query.filter;
-      this.searchKeyword = this.$route.query.keyword || ""; // Update search keyword
+    const apiUrl = this.$store.state.apiUrl; // Lấy API URL từ Vuex store
+    if (apiUrl) {
+      this.apiUrl = apiUrl;
       this.loadMoviesByFilter(this.apiUrl, 1);
     } else {
       this.apiUrl = "https://phimapi.com/danh-sach/phim-moi-cap-nhat";
@@ -178,12 +179,12 @@ export default {
   watch: {
     $route: {
       immediate: true,
-      handler(newRoute) {
+      handler() {
         this.scrollToTop(); // Scroll to top when the route changes
-        if (newRoute.query.filter) {
-          this.apiUrl = newRoute.query.filter; // Update API URL dynamically
-          this.searchKeyword = newRoute.query.keyword || ""; // Update search keyword
-          this.loadMoviesByFilter(this.apiUrl, 1); // Ensure movies are fetched
+        const apiUrl = this.$store.state.apiUrl; // Lấy API URL từ Vuex store
+        if (apiUrl) {
+          this.apiUrl = apiUrl;
+          this.loadMoviesByFilter(this.apiUrl, 1);
         } else {
           this.apiUrl = "https://phimapi.com/danh-sach/phim-moi-cap-nhat";
           this.fetchMovies(1);
@@ -192,6 +193,16 @@ export default {
     },
     isLoading(newValue) {
       this.$emit("loading", newValue); // Emit loading state to parent
+    },
+    // Thêm watcher để theo dõi sự thay đổi của apiUrl trong Vuex store
+    "$store.state.apiUrl": {
+      immediate: true,
+      handler(newApiUrl) {
+        if (newApiUrl && newApiUrl !== this.apiUrl) {
+          this.apiUrl = newApiUrl;
+          this.loadMoviesByFilter(this.apiUrl, 1); // Tải lại danh sách phim
+        }
+      },
     },
   },
   computed: {
@@ -225,7 +236,7 @@ export default {
         const response = await axios.get("https://phimapi.com/the-loai");
         this.genres = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách thể loại:", error);
+        // ...existing code...
       }
     },
 
@@ -234,7 +245,7 @@ export default {
         const response = await axios.get("https://phimapi.com/quoc-gia");
         this.countries = response.data || [];
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách quốc gia:", error);
+        // ...existing code...
       }
     },
 
@@ -281,7 +292,7 @@ export default {
           response.data?.data?.params?.pagination?.totalPages ||
           1;
       } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
+        // ...existing code...
       } finally {
         this.isLoading = false;
       }
@@ -376,6 +387,14 @@ export default {
         top: 0,
         behavior: "smooth",
       });
+    },
+
+    translateStatus(status) {
+      const statusMap = {
+        completed: "Hoàn thành",
+        ongoing: "Đang chiếu",
+      };
+      return statusMap[status?.toLowerCase()] || "Đang cập nhật";
     },
   },
 };
@@ -743,5 +762,33 @@ export default {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.episode-list-container {
+  max-height: 400px; /* Set maximum height for the container */
+  overflow-y: auto; /* Add vertical scroll if content exceeds max height */
+  padding: 10px;
+  background-color: #2c2c2c; /* Background color for the container */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Modern shadow effect */
+}
+
+/* Custom scrollbar styling */
+.episode-list-container::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.episode-list-container::-webkit-scrollbar-thumb {
+  background-color: #ff6347; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded corners for the thumb */
+}
+
+.episode-list-container::-webkit-scrollbar-thumb:hover {
+  background-color: #e03e2d; /* Darker color on hover */
+}
+
+.episode-list-container::-webkit-scrollbar-track {
+  background-color: #333; /* Background color of the scrollbar track */
+  border-radius: 4px; /* Rounded corners for the track */
 }
 </style>

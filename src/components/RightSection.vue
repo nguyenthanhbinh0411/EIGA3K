@@ -7,7 +7,7 @@
       </div>
       <div class="anime-grid">
         <div
-          v-for="movie in newMovies.slice(0, 7)"
+          v-for="movie in newMovies.slice(0, 10)"
           :key="movie._id"
           class="anime-card"
         >
@@ -74,6 +74,9 @@ export default {
       type: Array,
       required: true,
     },
+  },
+  mounted() {
+    this.$emit("loaded"); // Emit loaded event after mounting
   },
   methods: {
     getMovieImage(movie) {

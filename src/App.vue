@@ -41,9 +41,9 @@ export default {
     scrollToTop() {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
-    }
+    },
   },
 };
 </script>
@@ -70,5 +70,27 @@ nav a {
 
 nav a.router-link-exact-active {
   color: #42b983;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+  height: 8px; /* Height for horizontal scrollbars */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #ff6347; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded corners for the thumb */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #e03e2d; /* Darker color on hover */
+  transform: scale(1.1); /* Slightly enlarge on hover */
+}
+
+::-webkit-scrollbar-track {
+  background-color: #333; /* Background color of the scrollbar track */
+  border-radius: 4px; /* Rounded corners for the track */
 }
 </style>
