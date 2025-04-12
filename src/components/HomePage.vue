@@ -228,8 +228,14 @@ export default {
       this.isLoading = true;
       try {
         const animeResponse = await axios.get(this.animeApiUrl);
-        this.animeMovies =
-          animeResponse.data?.items || animeResponse.data?.data?.items || [];
+        this.animeMovies = (
+          animeResponse.data?.items ||
+          animeResponse.data?.data?.items ||
+          []
+        ).map((movie) => ({
+          ...movie,
+          type: movie.type === "hoathinh" ? "anime" : movie.type, // Convert "hoathinh" to "anime"
+        }));
       } catch (error) {
         console.error("Error fetching anime movies:", error);
       }
@@ -289,8 +295,9 @@ export default {
     },
     redirectToMovieList(apiUrl) {
       if (apiUrl) {
-        this.$store.commit("setApiUrl", apiUrl); // Lưu API URL vào Vuex store
-        this.$router.push({ path: "/movies" }); // Chuyển hướng mà không truyền query
+        const updatedApiUrl = apiUrl.replace("hoathinh", "anime"); // Replace "hoathinh" with "anime" in the URL
+        this.$store.commit("setApiUrl", updatedApiUrl);
+        this.$router.push({ path: "/movies" });
       }
     },
     redirectToMovieListWithoutApi() {

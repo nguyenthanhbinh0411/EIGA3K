@@ -434,7 +434,7 @@ export default {
         { name: "Phim Lẻ", slug: "phim-le" },
         { name: "Phim Bộ", slug: "phim-bo" },
         { name: "TV Shows", slug: "tv-shows" },
-        { name: "Hoạt Hình", slug: "hoat-hinh" },
+        { name: "Anime", slug: "hoat-hinh" },
         { name: "Phim Vietsub", slug: "phim-vietsub" },
         { name: "Phim Thuyết Minh", slug: "phim-thuyet-minh" },
         { name: "Phim Lồng Tiếng", slug: "phim-long-tieng" },

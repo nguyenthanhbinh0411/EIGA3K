@@ -10,32 +10,53 @@
       @load-movies-by-genre="loadMoviesByGenre"
       @load-movies-by-country="loadMoviesByCountry"
     />
-    <!-- Loading Spinner -->
-    <div v-if="isLoading" class="loading-spinner">
-      <span>Đang tải...</span>
-      <div class="spinner"></div>
-    </div>
+    <div class="container">
+      <div class="left-section">
+        <!-- Breadcrumb navigation -->
+        <nav class="breadcrumb">
+          <router-link to="/">Trang chủ</router-link>
+          <span>/</span>
+          <router-link :to="`/movies?type=${movieType}`">
+            {{ translatedType }}
+          </router-link>
+          <span>/</span>
+          <span>{{ movieName }}</span>
+        </nav>
+        <!-- Existing MoviePlayer content -->
+        <div v-if="isLoading" class="loading-spinner">
+          <span>Đang tải...</span>
+          <div class="spinner"></div>
+        </div>
 
-    <!-- Movie Info -->
-    <div v-if="movieName && currentEpisodeName" class="movie-info">
-      <h2>{{ movieName }} - {{ currentEpisodeName }}</h2>
-    </div>
+        <div v-if="movieName && currentEpisodeName" class="movie-info">
+          <h2>{{ movieName }} - {{ currentEpisodeName }}</h2>
+        </div>
 
-    <!-- Video Player -->
-    <div class="player-container">
-      <iframe
-        v-if="episodeUrl"
-        :src="episodeUrl"
-        class="video-player"
-        frameborder="0"
-        allowfullscreen
-      ></iframe>
-    </div>
+        <div class="player-container">
+          <iframe
+            v-if="episodeUrl"
+            :src="episodeUrl"
+            class="video-player"
+            frameborder="0"
+            allowfullscreen
+          ></iframe>
+        </div>
 
-    <!-- Server and Episode List -->
-    <div class="server-list" v-if="episodes.length > 0">
-      <h3>Danh sách Server</h3>
-      <EpisodeList :episodes="episodes" @episode-click="playEpisode" />
+        <div class="server-list" v-if="episodes.length > 0">
+          <EpisodeList
+            :episodes="episodes"
+            :currentEpisodeSlug="episodeSlug"
+            @episode-click="playEpisode"
+          />
+        </div>
+        <!-- End of existing content -->
+      </div>
+      <div class="right-section">
+        <RightSection
+          :newMovies="newMovies"
+          @redirect="redirectToMovieListWithoutApi"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -44,38 +65,57 @@
 import axios from "axios";
 import MovieNavbar from "./Navbar.vue";
 import EpisodeList from "./EpisodeList.vue";
+import RightSection from "./RightSection.vue";
 
 export default {
   components: {
     EpisodeList,
     MovieNavbar,
+    RightSection,
   },
   data() {
     return {
       isLoading: true,
-      episodeSlug: this.$route.query.episodeSlug || "full", // Retrieve episodeSlug from query parameters
+      episodeSlug: this.$route.query.episodeSlug || "full",
       episodeUrl: "",
       episodes: [],
       movieName: "",
+      movieType: "",
       currentEpisodeName: "",
       genres: [],
       countries: [],
       showGenreDropdown: false,
       showCountryDropdown: false,
+      newMovies: [], // Add newMovies for RightSection
     };
   },
+  computed: {
+    translatedType() {
+      const typeMap = {
+        "phim-le": "Phim Lẻ",
+        "phim-bo": "Phim Bộ",
+        "tv-shows": "TV Shows",
+        hoathinh: "Anime",
+        "phim-vietsub": "Phim Vietsub",
+        "phim-thuyet-minh": "Phim Thuyết Minh",
+        "phim-long-tieng": "Phim Lồng Tiếng",
+      };
+      return typeMap[this.movieType] || "Danh sách phim";
+    },
+  },
   mounted() {
-    this.scrollToTop(); // Scroll to top when the component is mounted
+    this.scrollToTop();
     this.fetchMovieDetails();
     this.fetchGenres();
     this.fetchCountries();
+    this.fetchNewMovies(); // Fetch new movies for RightSection
   },
   watch: {
     $route: {
       immediate: true,
       handler(newRoute) {
-        this.scrollToTop(); // Scroll to top when the route changes
-        this.episodeSlug = newRoute.query.episodeSlug || "full"; // Update episodeSlug from query parameters
+        this.scrollToTop();
+        this.episodeSlug = newRoute.query.episodeSlug || "full";
         if (this.episodes.length > 0) {
           this.updateCurrentEpisode();
         } else {
@@ -97,11 +137,12 @@ export default {
         const res = await axios.get(`https://phimapi.com/phim/${slug}`);
         if (res.data && res.data.movie && res.data.episodes.length > 0) {
           this.movieName = res.data.movie.name;
+          this.movieType = res.data.movie.type;
           this.episodes = res.data.episodes.map((server) => ({
             ...server,
             server_data: server.server_data.map((episode) => ({
               ...episode,
-              slug: episode.slug || episode.filename, // Ensure slug is correctly handled
+              slug: episode.slug || episode.filename,
             })),
           }));
           this.updateCurrentEpisode();
@@ -111,28 +152,6 @@ export default {
       } finally {
         this.isLoading = false;
       }
-    },
-    updateCurrentEpisode() {
-      for (const server of this.episodes) {
-        const currentEpisode = server.server_data.find(
-          (ep) => ep.slug === this.episodeSlug
-        );
-        if (currentEpisode && currentEpisode.link_embed) {
-          this.episodeUrl = currentEpisode.link_embed;
-          this.currentEpisodeName = currentEpisode.name;
-          return;
-        }
-      }
-      // If no matching episode is found, default to the first episode with a valid link
-      for (const server of this.episodes) {
-        const fallbackEpisode = server.server_data.find((ep) => ep.link_embed);
-        if (fallbackEpisode) {
-          this.episodeUrl = fallbackEpisode.link_embed;
-          this.currentEpisodeName = fallbackEpisode.name;
-          return;
-        }
-      }
-      console.error("Không tìm thấy tập hiện tại hoặc không có link_embed.");
     },
     async fetchGenres() {
       try {
@@ -150,19 +169,42 @@ export default {
         // Handle error
       }
     },
+    async fetchNewMovies() {
+      try {
+        const response = await axios.get(
+          "https://phimapi.com/danh-sach/phim-moi-cap-nhat-v3?page=1"
+        );
+        this.newMovies = response.data?.items || [];
+      } catch (error) {
+        // Handle error
+      }
+    },
+    updateCurrentEpisode() {
+      for (const server of this.episodes) {
+        const currentEpisode = server.server_data.find(
+          (ep) => ep.slug === this.episodeSlug
+        );
+        if (currentEpisode && currentEpisode.link_embed) {
+          this.episodeUrl = currentEpisode.link_embed;
+          this.currentEpisodeName = currentEpisode.name;
+          return;
+        }
+      }
+      for (const server of this.episodes) {
+        const fallbackEpisode = server.server_data.find((ep) => ep.link_embed);
+        if (fallbackEpisode) {
+          this.episodeUrl = fallbackEpisode.link_embed;
+          this.currentEpisodeName = fallbackEpisode.name;
+          return;
+        }
+      }
+      console.error("Không tìm thấy tập hiện tại hoặc không có link_embed.");
+    },
     toggleGenreDropdown() {
       this.showGenreDropdown = !this.showGenreDropdown;
     },
     toggleCountryDropdown() {
       this.showCountryDropdown = !this.showCountryDropdown;
-    },
-    loadMoviesByGenre(apiUrl) {
-      this.$router.push("/");
-      this.$emit("load-movies-by-genre", apiUrl);
-    },
-    loadMoviesByCountry(apiUrl) {
-      this.$router.push("/");
-      this.$emit("load-movies-by-country", apiUrl);
     },
     playEpisode(episode) {
       if (episode.link_embed) {
@@ -178,19 +220,39 @@ export default {
         alert("Không thể phát tập này.");
       }
     },
+    redirectToMovieListWithoutApi() {
+      this.$router.push({ path: "/movies" });
+    },
   },
 };
 </script>
 
 <style scoped>
+.container {
+  display: grid;
+  grid-template-columns: 8fr 4fr; /* Left section 8 rows, right section 4 rows */
+  gap: 20px;
+  padding-top: 60px;
+  max-width: 1450px;
+  margin: 0 auto;
+}
+
+.left-section {
+  flex: 2;
+}
+
+.right-section {
+  flex: 1;
+}
+
 .movie-player-page {
-  background-color: #1c1c1c; /* Black background */
-  color: white; /* White text color */
+  background-color: #1c1c1c;
+  color: white;
   min-height: 100vh;
   padding: 20px;
 }
 
-/* Hiệu ứng spinner */
+/* Existing styles... */
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -385,5 +447,29 @@ export default {
   .movie-info {
     font-size: 14px;
   }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  background: #1c1c1c;
+  margin-bottom: 15px;
+  color: #ff6347;
+}
+
+.breadcrumb a {
+  color: #ff6347;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: #e03e2d;
+  text-decoration: underline;
+}
+
+.breadcrumb span {
+  color: #ff6347;
 }
 </style>

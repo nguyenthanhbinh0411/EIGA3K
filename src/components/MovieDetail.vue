@@ -10,6 +10,20 @@
       @load-movies-by-genre="loadMoviesByGenre"
       @load-movies-by-country="loadMoviesByCountry"
     />
+    <!-- Breadcrumb navigation -->
+    <nav class="breadcrumb">
+      <router-link to="/">Trang chủ</router-link>
+      <span>/</span>
+      <router-link
+        v-if="!isLoading && movie.type"
+        :to="`/movies?type=${movie.type}`"
+      >
+        {{ translatedType }}
+      </router-link>
+      <span v-else>Đang tải...</span>
+      <span>/</span>
+      <span>{{ movie.name }}</span>
+    </nav>
     <div v-if="isLoading" class="loading-spinner">
       <span>Đang tải...</span>
       <div class="spinner"></div>
@@ -325,6 +339,18 @@ export default {
       };
       return statusMap[this.movie.status?.toLowerCase()] || "Đang cập nhật"; // Default to "Đang cập nhật" if status is not found
     },
+    translatedType() {
+      const typeMap = {
+        "phim-le": "Phim Lẻ",
+        "phim-bo": "Phim Bộ",
+        "tv-shows": "TV Shows",
+        hoathinh: "Anime",
+        "phim-vietsub": "Phim Vietsub",
+        "phim-thuyet-minh": "Phim Thuyết Minh",
+        "phim-long-tieng": "Phim Lồng Tiếng",
+      };
+      return typeMap[this.movie.type] || "Danh sách phim";
+    },
   },
   methods: {
     scrollToTop() {
@@ -340,8 +366,7 @@ export default {
         if (response.data && response.data.movie) {
           this.movie = {
             ...response.data.movie,
-            vote_average: response.data.movie.tmdb?.vote_average || 0, // Replace "Chưa có" with 0
-            vote_count: response.data.movie.tmdb?.vote_count || 0, // Replace "Chưa có" with 0
+            type: response.data.movie.type || "unknown", // Ensure type is set
           };
           this.episodes = response.data.episodes.map((server) => ({
             ...server,
@@ -352,7 +377,7 @@ export default {
           }));
         }
       } catch (error) {
-        // Handle error
+        console.error("Error fetching movie details:", error);
       } finally {
         this.isLoading = false;
       }
@@ -393,6 +418,13 @@ export default {
         alert("Không thể phát tập này.");
       }
     },
+    redirectToMovieList(apiUrl) {
+      if (apiUrl) {
+        const updatedApiUrl = apiUrl.replace("hoathinh", "anime"); // Replace "hoathinh" with "anime" in the URL
+        this.$store.commit("setApiUrl", updatedApiUrl);
+        this.$router.push({ path: "/movies" });
+      }
+    },
     redirectToMovieListWithoutApi() {
       this.$router.push({ path: "/movies" });
     },
@@ -412,7 +444,6 @@ export default {
   display: grid;
   grid-template-columns: 8fr 4fr; /* Left section 8 rows, right section 4 rows */
   gap: 20px;
-  padding-top: 60px;
   max-width: 1450px;
 }
 
@@ -875,5 +906,28 @@ export default {
   .movie-info p {
     font-size: 12px;
   }
+}
+
+.breadcrumb {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  background: #1c1c1c;
+}
+
+.breadcrumb a {
+  color: #ff6347;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: #e03e2d;
+  text-decoration: underline;
+}
+
+.breadcrumb span {
+  color: #e03e2d;
 }
 </style>

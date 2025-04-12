@@ -186,7 +186,7 @@ export default {
           this.apiUrl = apiUrl;
           this.loadMoviesByFilter(this.apiUrl, 1);
         } else {
-          this.apiUrl = "https://phimapi.com/danh-sach/phim-moi-cap-nhat";
+          this.apiUrl = "https://phimapi.com/danh-sach/phim-moi-cap-nhat-v3?page=1";
           this.fetchMovies(1);
         }
       },
@@ -287,12 +287,16 @@ export default {
           `${this.apiUrl}${this.apiUrl.includes("?") ? "&" : "?"}page=${page}`
         ); // Append page parameter dynamically
         this.movies = response.data?.items || response.data?.data?.items || [];
+        this.movies = this.movies.map((movie) => ({
+          ...movie,
+          type: movie.type === "hoathinh" ? "anime" : movie.type, // Convert "hoathinh" to "anime"
+        }));
         this.totalPages =
           response.data?.pagination?.totalPages ||
           response.data?.data?.params?.pagination?.totalPages ||
           1;
       } catch (error) {
-        // ...existing code...
+        console.error("Error fetching movies:", error);
       } finally {
         this.isLoading = false;
       }
@@ -395,6 +399,14 @@ export default {
         ongoing: "Đang chiếu",
       };
       return statusMap[status?.toLowerCase()] || "Đang cập nhật";
+    },
+
+    redirectToMovieList(apiUrl) {
+      if (apiUrl) {
+        const updatedApiUrl = apiUrl.replace("hoathinh", "anime"); // Replace "hoathinh" with "anime" in the URL
+        this.$store.commit("setApiUrl", updatedApiUrl);
+        this.$router.push({ path: "/movies" });
+      }
     },
   },
 };
