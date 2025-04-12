@@ -169,6 +169,24 @@ export default {
   margin: 20px 0;
 }
 
+@media (max-width: 1200px) {
+  .movie-grid {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+  }
+}
+
+@media (max-width: 768px) {
+  .movie-grid {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+  }
+}
+
+@media (max-width: 480px) {
+  .movie-grid {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+  }
+}
+
 .movie-card {
   background-color: #1c1c1c;
   border-radius: 8px;

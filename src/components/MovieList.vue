@@ -186,7 +186,8 @@ export default {
           this.apiUrl = apiUrl;
           this.loadMoviesByFilter(this.apiUrl, 1);
         } else {
-          this.apiUrl = "https://phimapi.com/danh-sach/phim-moi-cap-nhat-v3?page=1";
+          this.apiUrl =
+            "https://phimapi.com/danh-sach/phim-moi-cap-nhat-v3?page=1";
           this.fetchMovies(1);
         }
       },
@@ -709,7 +710,7 @@ export default {
   }
 
   .movies {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
   }
 
   .movie-card img {
@@ -719,11 +720,11 @@ export default {
 
 @media (max-width: 480px) {
   .movies {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
   }
 
   .movie-card img {
-    height: 150px;
+    height: 300px;
   }
 
   .movie-card h3 {

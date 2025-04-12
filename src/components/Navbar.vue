@@ -1,9 +1,92 @@
 <template>
   <div class="navbar">
+    <button class="menu-button" @click="toggleMenuModal">
+      <i class="fas fa-bars"></i>
+    </button>
     <div class="logo">
       <router-link to="/">
         <img src="@/assets/logo.png" alt="Trang Chủ" class="logo-image" />
       </router-link>
+    </div>
+    <div class="search-container">
+      <button class="search-toggle" @click="toggleSearchInput">
+        <i class="fas fa-search"></i>
+      </button>
+      <input
+        v-if="showSearchInput"
+        type="text"
+        v-model="localSearchKeyword"
+        placeholder="Tìm kiếm tên phim..."
+        class="search-input"
+        @keyup.enter="searchMovies"
+      />
+    </div>
+    <div class="menu-modal" :class="{ active: isMenuModalOpen }">
+      <button class="menu-modal-close" @click="toggleMenuModal">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="menu-modal-content">
+        <div class="dropdown">
+          <button class="menu-item" @click="toggleDanhSachDropdown">
+            <i class="fas fa-list"></i> Danh Sách
+          </button>
+          <div class="dropdown-content" v-if="showDanhSachDropdown">
+            <button
+              v-for="(item, index) in danhSachItems"
+              :key="index"
+              class="dropdown-item"
+              @click="selectDanhSach(item.slug)"
+            >
+              <i class="fas fa-film"></i> {{ item.name }}
+            </button>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="menu-item" @click="toggleGenreDropdown">
+            <i class="fas fa-tags"></i> Thể Loại
+          </button>
+          <div class="dropdown-content" v-if="localShowGenreDropdown">
+            <button
+              v-for="(genre, index) in genres"
+              :key="index"
+              class="dropdown-item"
+              @click="selectGenre(genre)"
+            >
+              <i class="fas fa-tag"></i> {{ genre.name }}
+            </button>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="menu-item" @click="toggleCountryDropdown">
+            <i class="fas fa-globe"></i> Quốc Gia
+          </button>
+          <div class="dropdown-content" v-if="localShowCountryDropdown">
+            <button
+              v-for="(country, index) in countries"
+              :key="index"
+              class="dropdown-item"
+              @click="selectCountry(country)"
+            >
+              <i class="fas fa-flag"></i> {{ country.name }}
+            </button>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="menu-item" @click="toggleYearDropdown">
+            <i class="fas fa-calendar-alt"></i> Năm
+          </button>
+          <div class="dropdown-content" v-if="localShowYearDropdown">
+            <button
+              v-for="(year, index) in years"
+              :key="index"
+              class="dropdown-item"
+              @click="selectYear(year)"
+            >
+              <i class="fas fa-calendar"></i> {{ year }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="menu">
       <div class="dropdown">
@@ -441,6 +524,8 @@ export default {
       ],
       searchSuggestions: [], // Store search suggestions
       showSearchDropdown: false, // Control visibility of search dropdown
+      isMenuModalOpen: false, // Track modal state
+      showSearchInput: false, // Track search input visibility
     };
   },
   mounted() {
@@ -486,6 +571,7 @@ export default {
         this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
       }
       this.showDanhSachDropdown = false; // Đóng megamenu
+      this.isMenuModalOpen = false; // Ẩn modal
     },
     selectGenre(genre) {
       const apiUrl = `https://phimapi.com/v1/api/the-loai/${genre.slug}?page=1`;
@@ -494,6 +580,7 @@ export default {
         this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
       }
       this.localShowGenreDropdown = false; // Đóng megamenu
+      this.isMenuModalOpen = false; // Ẩn modal
     },
     selectCountry(country) {
       const apiUrl = `https://phimapi.com/v1/api/quoc-gia/${country.slug}?page=1`;
@@ -502,6 +589,7 @@ export default {
         this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
       }
       this.localShowCountryDropdown = false; // Đóng megamenu
+      this.isMenuModalOpen = false; // Ẩn modal
     },
     selectYear(year) {
       const apiUrl = `https://phimapi.com/v1/api/nam/${year}?page=1`;
@@ -510,6 +598,7 @@ export default {
         this.$router.push({ path: "/movies" }); // Chuyển hướng nếu không ở trang MovieList
       }
       this.localShowYearDropdown = false; // Đóng megamenu
+      this.isMenuModalOpen = false; // Ẩn modal
     },
     clearSearch() {
       this.localSearchKeyword = "";
@@ -551,6 +640,12 @@ export default {
       return path.startsWith("upload")
         ? `https://phimimg.com/${path}`
         : path || "https://placehold.it/50x50";
+    },
+    toggleMenuModal() {
+      this.isMenuModalOpen = !this.isMenuModalOpen;
+    },
+    toggleSearchInput() {
+      this.showSearchInput = !this.showSearchInput;
     },
   },
   watch: {
@@ -615,6 +710,7 @@ export default {
   cursor: pointer;
   transition: color 0.3s;
   position: relative;
+  padding: 12px 15px; /* Add padding for better spacing */
 }
 
 .menu-item:hover {
@@ -854,6 +950,121 @@ export default {
   margin: 0;
 }
 
+/* Modal styles for menu */
+.menu-modal {
+  position: fixed;
+  top: 0;
+  left: -100%; /* Initially hide modal off-screen */
+  width: 300px;
+  height: 100%;
+  background-color: #1c1c1c;
+  color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.menu-modal.active {
+  left: 0; /* Slide modal into view */
+}
+
+.menu-modal-close {
+  align-self: flex-end;
+  font-size: 20px;
+  margin-right: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  color: white;
+  transition: color 0.3s;
+}
+
+.menu-modal-close:hover {
+  color: #ff6347; /* Highlight close button on hover */
+}
+
+.menu-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.menu-item {
+  font-size: 16px;
+  color: white;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: color 0.3s, background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Add spacing between icon and text */
+}
+
+.menu-item i {
+  font-size: 18px; /* Icon size */
+  color: #ff6347; /* Icon color */
+}
+
+.menu-item:hover {
+  color: #ff6347;
+  background-color: rgba(255, 99, 71, 0.1); /* Subtle hover background */
+  border-radius: 5px; /* Rounded corners for hover effect */
+}
+
+.dropdown-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 10px;
+  max-height: 300px; /* Set maximum height */
+  overflow-y: auto; /* Enable vertical scrolling */
+  border: 1px solid #ff6347; /* Add border to dropdown */
+  border-radius: 5px; /* Rounded corners */
+  background-color: #2c2c2c; /* Differentiate dropdown background */
+  padding: 15px; /* Increase padding inside dropdown */
+}
+
+.dropdown-content::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background-color: #ff6347; /* Scrollbar thumb color */
+  border-radius: 4px; /* Rounded corners for the scrollbar thumb */
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background-color: #333; /* Scrollbar track color */
+}
+
+.dropdown-item {
+  font-size: 14px;
+  color: white;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.3s, background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Add spacing between icon and text */
+  padding: 5px 10px; /* Add padding to dropdown items */
+  border-radius: 3px; /* Rounded corners for items */
+}
+
+.dropdown-item:hover {
+  color: #ff6347;
+  background-color: rgba(255, 99, 71, 0.2); /* Subtle hover background */
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .menu {
@@ -863,22 +1074,165 @@ export default {
   .search-bar {
     width: 300px;
   }
+
+  .navbar * {
+    padding: 0 !important; /* Remove padding */
+    margin: 0 !important; /* Remove margin */
+  }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row; /* Ensure items are in one row */
+    padding: 10px 20px;
+    gap: 0; /* Remove unnecessary gaps */
+    flex-wrap: nowrap; /* Prevent wrapping */
+  }
+
+  .menu-button {
+    display: block; /* Show menu button */
+    font-size: 18px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  .logo {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Ensure logo is vertically centered */
+  }
+
+  .search-container {
+    display: flex; /* Show search container */
+    align-items: center;
+    position: relative;
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  .search-toggle {
+    display: block; /* Show search toggle button */
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .search-input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(100%);
+    width: 350px;
+    height: 40px;
+    padding: 5px 10px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #222;
+    color: white;
+    outline: none;
+    display: block;
+  }
+
+  .search-input::placeholder {
+    padding: 10px;
+    color: #aaa;
   }
 
   .menu {
-    flex-wrap: wrap;
-    gap: 10px;
+    display: none; /* Hide full menu on smaller screens */
+  }
+
+  .navbar * {
+    padding: 0 !important; /* Remove padding */
+    margin: 0 !important; /* Remove margin */
+  }
+}
+
+/* Ensure proper alignment for extra small screens */
+@media (max-width: 480px) {
+  .menu-item {
+    font-size: 14px;
   }
 
   .search-bar {
     width: 100%;
+  }
+
+  .menu-modal {
+    width: 180px; /* Further adjust modal width */
+  }
+
+  .menu-modal-content .menu-item {
+    font-size: 12px; /* Further reduce font size */
+  }
+
+  .navbar * {
+    padding: 0 !important; /* Remove padding */
+    margin: 0 !important; /* Remove margin */
+  }
+}
+
+/* Fix navbar layout for small screens */
+@media (max-width: 774px) {
+  .navbar {
+    display: flex;
+    flex-direction: row; /* Ensure items are in a single row */
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    padding: 10px; /* Adjust padding for smaller screens */
+    gap: 0; /* Remove unnecessary gaps */
+  }
+
+  .menu-button {
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  .logo {
+    flex-shrink: 1; /* Allow logo to shrink if needed */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .search-container {
+    flex-shrink: 0; /* Prevent shrinking */
+    display: flex;
+    align-items: center;
+  }
+
+  .menu {
+    display: none; /* Hide full menu on smaller screens */
+  }
+
+  .search-bar {
+    display: none; /* Hide search bar on smaller screens */
+  }
+}
+
+/* Hide search button by default */
+.search-container {
+  display: none;
+}
+
+/* Show search button only on smaller screens */
+@media (max-width: 1024px) {
+  .search-container {
+    display: flex;
+  }
+  .search-bar {
+    display: none; /* Hide search bar on smaller screens */
+  }
+  .search-input {
+    display: block; /* Show search input on smaller screens */
   }
 }
 
@@ -889,6 +1243,35 @@ export default {
 
   .search-bar {
     width: 100%;
+  }
+
+  .menu-modal {
+    width: 180px; /* Further adjust modal width */
+  }
+
+  .menu-modal-content .menu-item {
+    font-size: 12px; /* Further reduce font size */
+  }
+}
+
+/* Hide menu button by default */
+.menu-button {
+  display: none;
+}
+
+/* Show menu button only on smaller screens */
+@media (max-width: 1024px) {
+  .menu-button {
+    display: block;
+    font-size: 18px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+
+  .menu {
+    display: none; /* Hide full menu on smaller screens */
   }
 }
 </style>

@@ -900,11 +900,38 @@ export default {
 
 @media (max-width: 480px) {
   .movie-info h1 {
-    font-size: 20px;
+    font-size: 20px; /* Further reduce title size */
   }
 
   .movie-info p {
-    font-size: 12px;
+    font-size: 12px; /* Further reduce text size */
+  }
+
+  .movie-content {
+    flex-direction: column; /* Stack content vertically */
+    align-items: center; /* Center align content */
+  }
+
+  .movie-thumbnail {
+    margin-bottom: 15px; /* Add spacing below the thumbnail */
+  }
+
+  .tabs {
+    flex-direction: column; /* Stack tabs vertically */
+    gap: 10px; /* Add spacing between tabs */
+  }
+
+  .tab-button {
+    width: 100%; /* Make buttons full width */
+  }
+
+  .trailer-iframe {
+    height: 250px; /* Reduce iframe height */
+  }
+
+  .breadcrumb {
+    font-size: 14px; /* Reduce breadcrumb font size */
+    flex-wrap: wrap; /* Allow wrapping for long breadcrumbs */
   }
 }
 
@@ -913,7 +940,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
+  font-size: 16px;
   background: #1c1c1c;
 }
 
@@ -929,5 +956,122 @@ export default {
 
 .breadcrumb span {
   color: #e03e2d;
+}
+
+/* Responsive adjustments for tablets */
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr; /* Stack sections vertically */
+    gap: 15px;
+  }
+
+  .movie-thumbnail img {
+    width: 250px; /* Adjust thumbnail size */
+  }
+
+  .movie-info h1 {
+    font-size: 28px; /* Adjust title size */
+  }
+
+  .movie-info p {
+    font-size: 16px; /* Adjust text size */
+  }
+
+  .tabs {
+    flex-wrap: wrap; /* Allow tabs to wrap */
+    justify-content: center; /* Center tabs */
+  }
+
+  .tab-button {
+    flex: 1 1 auto; /* Allow buttons to grow and shrink */
+    text-align: center; /* Center text */
+  }
+}
+
+/* Responsive adjustments for mobile devices */
+@media (max-width: 768px) {
+  .movie-thumbnail img {
+    width: 200px; /* Further reduce thumbnail size */
+  }
+
+  .movie-info h1 {
+    font-size: 24px; /* Reduce title size */
+  }
+
+  .movie-info p {
+    font-size: 14px; /* Reduce text size */
+  }
+
+  .rating-info {
+    flex-direction: column; /* Stack rating info vertically */
+    align-items: flex-start; /* Align items to the left */
+  }
+
+  .rating-container::after {
+    display: none; /* Hide divider */
+  }
+
+  .additional-info {
+    flex-direction: column; /* Stack additional info vertically */
+    gap: 10px; /* Adjust spacing */
+  }
+}
+
+/* Responsive adjustments for small mobile devices */
+@media (max-width: 480px) {
+  .movie-info h1 {
+    font-size: 20px; /* Further reduce title size */
+  }
+
+  .movie-info p {
+    font-size: 12px; /* Further reduce text size */
+  }
+
+  .movie-content {
+    flex-direction: column; /* Stack content vertically */
+    align-items: center; /* Center align content */
+  }
+
+  .movie-thumbnail {
+    margin-bottom: 15px; /* Add spacing below the thumbnail */
+  }
+
+  .tabs {
+    flex-direction: column; /* Stack tabs vertically */
+    gap: 10px; /* Add spacing between tabs */
+  }
+
+  .tab-button {
+    width: 100%; /* Make buttons full width */
+  }
+
+  .trailer-iframe {
+    height: 250px; /* Reduce iframe height */
+  }
+
+  .breadcrumb {
+    font-size: 14px; /* Reduce breadcrumb font size */
+    flex-wrap: wrap; /* Allow wrapping for long breadcrumbs */
+  }
+}
+
+/* Responsive adjustments for ultra-wide screens */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1800px; /* Increase max width */
+    gap: 30px; /* Increase spacing */
+  }
+
+  .movie-info h1 {
+    font-size: 48px; /* Increase title size */
+  }
+
+  .movie-info p {
+    font-size: 20px; /* Increase text size */
+  }
+
+  .tabs {
+    justify-content: flex-start; /* Align tabs to the left */
+  }
 }
 </style>

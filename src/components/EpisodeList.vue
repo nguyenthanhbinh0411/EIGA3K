@@ -57,6 +57,7 @@ export default {
 }
 
 .server h4 {
+  margin-top: 30px;
   margin-bottom: 30px;
   color: #ff6347;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);

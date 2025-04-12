@@ -16,22 +16,18 @@
         <nav class="breadcrumb">
           <router-link to="/">Trang chủ</router-link>
           <span>/</span>
-          <router-link :to="`/movies?type=${movieType}`">
+          <router-link v-if="movieType" :to="`/movies?type=${movieType}`">
             {{ translatedType }}
           </router-link>
+          <span v-else>Đang tải...</span>
           <span>/</span>
-          <span>{{ movieName }}</span>
+          <span>{{ movieName || "Đang tải..." }} {{ currentEpisodeName }}</span>
         </nav>
         <!-- Existing MoviePlayer content -->
         <div v-if="isLoading" class="loading-spinner">
           <span>Đang tải...</span>
           <div class="spinner"></div>
         </div>
-
-        <div v-if="movieName && currentEpisodeName" class="movie-info">
-          <h2>{{ movieName }} - {{ currentEpisodeName }}</h2>
-        </div>
-
         <div class="player-container">
           <iframe
             v-if="episodeUrl"
@@ -40,6 +36,9 @@
             frameborder="0"
             allowfullscreen
           ></iframe>
+          <div v-else class="loading-spinner">
+            <span>Đang tải...</span>
+          </div>
         </div>
 
         <div class="server-list" v-if="episodes.length > 0">
@@ -48,6 +47,84 @@
             :currentEpisodeSlug="episodeSlug"
             @episode-click="playEpisode"
           />
+        </div>
+        <!-- Movie Information Section -->
+        <div
+          v-if="movie && movie.thumb_url"
+          class="movie-detail-container"
+          :style="{ backgroundImage: `url(${movie.thumb_url})` }"
+        >
+          <div class="overlay"></div>
+          <div class="movie-content">
+            <div class="movie-thumbnail">
+              <img :src="movie.poster_url" alt="Thumbnail" loading="lazy" />
+            </div>
+            <div class="movie-info">
+              <h1>{{ movie.name }}</h1>
+              <p>
+                <i class="fas fa-film"></i> Tên khác:
+                {{ movie.origin_name || "Đang cập nhật" }}
+              </p>
+              <p class="movie-content">
+                {{ movie.content || "Đang cập nhật" }}
+              </p>
+              <div class="rating-info">
+                <div class="rating-container">
+                  <div class="rating-percentage">
+                    <div
+                      class="circle"
+                      :style="{
+                        background: `conic-gradient(#ff6347 ${circlePercentage}%, #fff ${circlePercentage}%)`,
+                      }"
+                    >
+                      <span class="percentage-text"
+                        >{{ circlePercentage }}%</span
+                      >
+                    </div>
+                  </div>
+                  <div class="stars-container">
+                    <div class="stars">
+                      <i
+                        v-for="n in 10"
+                        :key="n"
+                        :class="
+                          n <= Math.round(movie.vote_average)
+                            ? 'fas fa-star'
+                            : 'far fa-star'
+                        "
+                      ></i>
+                    </div>
+                    <p class="rating-text">
+                      ({{ movie.vote_average || "0" }}/10 từ
+                      {{ movie.vote_count || "0" }} lượt vote)
+                    </p>
+                  </div>
+                </div>
+                <div class="additional-info">
+                  <span>
+                    <i class="fas fa-list-ol"></i>
+                    {{
+                      movie.status?.toLowerCase() === "completed"
+                        ? movie.episode_current
+                        : `${movie.episode_current || "N/A"}/${
+                            movie.episode_total || "N/A"
+                          }`
+                    }}
+                  </span>
+                  <span>
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ movie.year || "N/A" }}
+                  </span>
+                  <span>
+                    <i class="fas fa-eye"></i> {{ movie.view || 0 }} Lượt Xem
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="loading-spinner">
+          <span>Đang tải thông tin phim...</span>
         </div>
         <!-- End of existing content -->
       </div>
@@ -87,6 +164,7 @@ export default {
       showGenreDropdown: false,
       showCountryDropdown: false,
       newMovies: [], // Add newMovies for RightSection
+      movie: null, // Ensure movie is initialized as null
     };
   },
   computed: {
@@ -101,6 +179,17 @@ export default {
         "phim-long-tieng": "Phim Lồng Tiếng",
       };
       return typeMap[this.movieType] || "Danh sách phim";
+    },
+    translatedStatus() {
+      const statusMap = {
+        completed: "Hoàn thành",
+        ongoing: "Đang chiếu",
+      };
+      return statusMap[this.movie.status?.toLowerCase()] || "Đang cập nhật";
+    },
+    circlePercentage() {
+      const voteAverage = parseFloat(this.movie.vote_average) || 0;
+      return (voteAverage * 10).toFixed(0);
     },
   },
   mounted() {
@@ -135,9 +224,10 @@ export default {
       const slug = this.$route.params.slug;
       try {
         const res = await axios.get(`https://phimapi.com/phim/${slug}`);
-        if (res.data && res.data.movie && res.data.episodes.length > 0) {
-          this.movieName = res.data.movie.name;
-          this.movieType = res.data.movie.type;
+        if (res.data && res.data.movie) {
+          this.movie = res.data.movie; // Assign the movie data
+          this.movieName = res.data.movie.name; // Update movieName
+          this.movieType = res.data.movie.type; // Update movieType
           this.episodes = res.data.episodes.map((server) => ({
             ...server,
             server_data: server.server_data.map((episode) => ({
@@ -146,9 +236,11 @@ export default {
             })),
           }));
           this.updateCurrentEpisode();
+        } else {
+          console.error("Movie data is missing in the response.");
         }
       } catch (error) {
-        // Handle error
+        console.error("Error fetching movie details:", error);
       } finally {
         this.isLoading = false;
       }
@@ -295,25 +387,21 @@ export default {
 
 .player-container iframe {
   width: 100%;
-  max-width: 800px;
-  height: 450px;
+  max-width: 1000px;
+  height: 500px;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease-in-out;
 }
 
-.player-container iframe:hover {
-  transform: scale(1.02);
-}
-
 /* Thông tin phim */
 .movie-info {
   text-align: center;
   font-size: 18px;
-  margin-top: 40px;
+  margin-top: 10px;
   font-weight: bold;
-  color: #ff6347; /* Orange text */
+  color: #fff; /* Orange text */
 }
 
 /* Danh sách tập */
@@ -453,7 +541,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
+  font-size: 16px;
   background: #1c1c1c;
   margin-bottom: 15px;
   color: #ff6347;
@@ -471,5 +559,232 @@ export default {
 
 .breadcrumb span {
   color: #ff6347;
+}
+
+.movie-detail-container {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center align content */
+  gap: 20px; /* Add spacing between elements */
+  margin-top: 20px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  position: relative;
+}
+
+.movie-detail-container .overlay {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  z-index: 1;
+}
+
+.movie-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+  font-weight: normal; /* Ensure content is not bold */
+  color: #ccc; /* Adjust text color for better readability */
+}
+
+.movie-thumbnail img {
+  width: 100%;
+  max-width: 300px; /* Limit the image width */
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.movie-info {
+  flex: 1;
+  text-align: left;
+}
+
+.movie-info h1 {
+  font-size: 28px;
+  color: #ff6347;
+  text-align: center; /* Center align the title */
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Add text shadow */
+}
+
+.movie-info p {
+  margin: 5px 0;
+  font-size: 18px; /* Match font size from MovieDetail */
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Add spacing between icon and text */
+}
+
+.movie-info i {
+  color: #ff6347; /* Match icon color from MovieDetail */
+  font-size: 18px;
+}
+
+.rating-info {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center align the rating info */
+  gap: 20px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-container::after {
+  content: "";
+  width: 1px;
+  height: 40px;
+  background-color: white;
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.rating-percentage .circle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: conic-gradient(#ff6347 0%, #fff 0%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-percentage .circle::before {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: #1c1c1c;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.percentage-text {
+  position: absolute;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  z-index: 2;
+}
+
+.stars-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  color: #ffcc00;
+}
+
+.stars i {
+  font-size: 12px;
+}
+
+.rating-text {
+  margin: 0;
+  font-size: 13px !important;
+  color: #ccc !important;
+  white-space: nowrap;
+}
+
+.additional-info {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.additional-info i {
+  font-size: 14px;
+  color: #ff6347;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .player-container iframe {
+    max-width: 800px;
+    height: 450px;
+  }
+
+  .movie-info h1 {
+    font-size: 32px;
+  }
+
+  .movie-info p {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-container iframe {
+    max-width: 100%;
+    height: 300px;
+  }
+
+  .movie-info h1 {
+    font-size: 24px;
+  }
+
+  .movie-info p {
+    font-size: 14px;
+  }
+
+  .rating-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-container iframe {
+    height: 250px;
+  }
+
+  .movie-info h1 {
+    font-size: 20px;
+  }
+
+  .movie-info p {
+    font-size: 12px;
+  }
+
+  .rating-info {
+    font-size: 12px;
+  }
+
+  .additional-info {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 </style>

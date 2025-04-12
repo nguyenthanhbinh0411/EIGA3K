@@ -333,10 +333,11 @@ export default {
     },
     autoScrollSlider(sliderRef) {
       const slider = this.$refs[sliderRef];
-      if (slider && slider.scrollBy) {
+      if (slider) {
         setInterval(() => {
-          slider.scrollBy({ left: 300, behavior: "smooth" });
-        }, 3000);
+          const scrollAmount = slider.offsetWidth / 2; // Scroll by half the slider width (2 movies)
+          slider.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        }, 5000); // Scroll every 5 seconds
       }
     },
     onLeftSectionLoaded() {
@@ -1117,7 +1118,9 @@ export default {
   .container {
     padding: 0 15px;
   }
-
+  .banner-slider-section {
+    display: none;
+  }
   .movie-slider {
     gap: 5px;
   }
@@ -1134,6 +1137,14 @@ export default {
   .banner-content h2 {
     font-size: 24px;
   }
+  .movie-grid,
+  .movie-slider {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+    gap: 10px;
+  }
+  .movie-card {
+    flex: 0 0 calc(50% - 15px); /* Match LeftSection's movie-card ratio */
+  }
 }
 
 @media (max-width: 768px) {
@@ -1146,7 +1157,7 @@ export default {
   }
 
   .movie-card {
-    width: 100px;
+    width: 120px;
   }
 
   .banner-thumbnail {
@@ -1157,6 +1168,26 @@ export default {
   .banner-content h2 {
     font-size: 20px;
   }
+  .movie-slider-wrapper {
+    overflow: hidden;
+  }
+
+  .movie-slider {
+    display: flex;
+    gap: 10px;
+  }
+
+  .movie-card {
+    flex: 0 0 50%; /* Show 2 movies at a time */
+  }
+  .movie-grid,
+  .movie-slider {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+    gap: 10px;
+  }
+  .movie-card {
+    flex: 0 0 calc(50% - 10px); /* Match LeftSection's movie-card ratio */
+  }
 }
 
 @media (max-width: 480px) {
@@ -1164,12 +1195,87 @@ export default {
     font-size: 18px;
   }
 
-  .movie-card {
-    width: 80px;
+  .movie-card img {
+    height: 300px;
   }
 
   .movie-title {
     font-size: 12px;
+  }
+  .movie-grid,
+  .movie-slider {
+    grid-template-columns: repeat(2, 1fr); /* Display 2 movies per row */
+    gap: 10px;
+  }
+  .movie-card {
+    flex: 0 0 calc(50% - 10px); /* Match LeftSection's movie-card ratio */
+  }
+}
+
+/* Responsive adjustments for navbar */
+@media (max-width: 1024px) {
+  .navbar {
+    flex-direction: column; /* Stack navbar items vertically */
+    align-items: flex-start; /* Align items to the left */
+    padding: 10px 20px; /* Adjust padding */
+  }
+
+  .navbar-logo {
+    margin-bottom: 10px; /* Add spacing below the logo */
+  }
+
+  .navbar-links {
+    display: flex;
+    flex-direction: column; /* Stack links vertically */
+    gap: 10px; /* Add spacing between links */
+  }
+
+  .navbar-links a {
+    font-size: 14px; /* Adjust font size */
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px; /* Reduce padding */
+  }
+
+  .navbar-links {
+    gap: 8px; /* Reduce spacing between links */
+  }
+
+  .navbar-links a {
+    font-size: 12px; /* Further reduce font size */
+  }
+
+  .navbar-toggle {
+    display: block; /* Show toggle button */
+    font-size: 18px; /* Adjust toggle button size */
+    cursor: pointer;
+  }
+
+  .navbar-links {
+    display: none; /* Hide links by default */
+  }
+
+  .navbar-links.active {
+    display: flex; /* Show links when active */
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 8px; /* Further reduce padding */
+  }
+
+  .navbar-logo {
+    font-size: 16px; /* Adjust logo font size */
+  }
+
+  .navbar-links a {
+    font-size: 10px; /* Further reduce link font size */
   }
 }
 </style>

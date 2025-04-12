@@ -95,7 +95,9 @@ export default {
     flex-direction: column;
     gap: 20px;
   }
-
+  .footer-contact{
+    display: none;
+  }
   .footer-content,
   .footer-contact {
     text-align: center;
